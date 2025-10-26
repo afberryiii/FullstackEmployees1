@@ -1,13 +1,34 @@
+import db from "#db/client";
+
 /** @returns the employee created according to the provided details */
 export async function createEmployee({ name, birthday, salary }) {
-  // TODO
+  const sql = `
+    INSERT INTO employees (name, birthday, salary)
+    VALUES ($1, $2, $3)
+    RETURNING *;
+    `;
+
+  const params = [name, birthday, salary];
+
+  try {
+    const result = await db.query(sql, params);
+    return result.rows[0];
+  } catch (error) {
+    console.error("Error creating employee:", error);
+    throw new Error("Failed to create new employees.");
+  }
 }
 
 // === Part 2 ===
 
 /** @returns all employees */
 export async function getEmployees() {
-  // TODO
+  const sql = `
+  SELECT *
+  FROM employees
+`;
+  const { rows: employees } = await db.query(sql);
+  return employees;
 }
 
 /**
@@ -15,15 +36,39 @@ export async function getEmployees() {
  * @returns undefined if employee with the given id does not exist
  */
 export async function getEmployee(id) {
-  // TODO
-}
+  try {
+    const sql = `
+    SELECT id, name, birthday, salary 
+    FROM employees
+    WHERE id = $1;
+    `;
 
+    const {
+      rows: [employee],
+    } = await db.query(sql, [id]);
+    return employee;
+  } catch (error) {
+    console.error(error);
+  }
+}
 /**
  * @returns the updated employee with the given id
  * @returns undefined if employee with the given id does not exist
  */
 export async function updateEmployee({ id, name, birthday, salary }) {
-  // TODO
+  const sql = `
+  UPDATE employees
+  SET
+    name = $2,
+    birthday = $3,
+    salary = $4
+  WHERE id = $1
+  RETURNING *
+  `;
+  const {
+    rows: [employee],
+  } = await db.query(sql, [id, name, birthday, salary]);
+  return employee;
 }
 
 /**
@@ -31,5 +76,13 @@ export async function updateEmployee({ id, name, birthday, salary }) {
  * @returns undefined if employee with the given id does not exist
  */
 export async function deleteEmployee(id) {
-  // TODO
+  const sql = `
+  DELETE FROM employees
+  WHERE id = $1
+  RETURNING *
+  `;
+  const {
+    rows: [employee],
+  } = await db.query(sql, [id]);
+  return employee;
 }
